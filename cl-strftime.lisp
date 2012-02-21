@@ -1,14 +1,12 @@
 (in-package #:cl-strftime)
 
 (defun flatten! (list)
-  (labels ((rec (list)
-             (mapcan
-              (lambda (elt)
-                (if (atom elt)
-                    (list elt)
-                    (rec elt)))
-              list)))
-    (rec list)))
+  (mapcan
+   (lambda (elt)
+     (if (atom elt)
+         (list elt)
+         (flatten! elt)))
+   list))
 
 (defun toggle-case (string)
   (map-into (make-string (length string))
@@ -148,6 +146,11 @@
             (floor (* tz 100)))))
 
 (defparameter *directives*
+  ;; Characters are inserted literally; strings are recursed on as
+  ;; time formats; symbols are called as functions with the parsed
+  ;; time. Lists are interpreted as calls to ~D; the value of the
+  ;; third element, a function, is padded to the width given by the
+  ;; second element with the character given by the first.
   '((#\% . #\%)
     (#\A . weekday-name)
     (#\a . short-weekday-name)
@@ -186,9 +189,6 @@
     (#\Y . year)
     (#\z . time-zone-offset)
     (#\Z . timezone)))
-
-(defun string-empty? (string)
-  (string= "" string))
 
 (defmacro make-writer (&body body)
   `(function
@@ -238,39 +238,34 @@
                          (parse-integer width)
                          (when (consp action)
                            (second action)))))
-    (macrolet ((make-writer (&body body)
-                 `(function
-                   (lambda (stream time)
-                    (declare (ignorable time))
-                    ,@body))))
-      (cond ((null action)
-             (error "~S is not a known directive" directive))
-            ((characterp action)
-             (make-writer (write-char action stream)))
-            ((stringp action)
-             (compile-time-format action))
-            (t (let ((fn (if (consp action) (third action) action)))
-                 (case flag-char
-                   (#\- (make-writer (format stream "~A"
-                                             (funcall fn time))))
-                   (#\_ (make-writer (format stream "~V,VD"
-                                             width-size #\Space
-                                             (funcall fn time))))
-                   (#\0 (make-writer (format stream "~V,VD"
-                                             width-size #\0
-                                             (funcall fn time))))
-                   (#\^ (make-writer (format stream "~:@(~A~)"
-                                             (funcall fn time))))
-                   (#\# (make-writer
-                          (let ((value (funcall fn time)))
-                            (format stream "~A"
-                                    (if (stringp value)
-                                        (toggle-case value)
-                                        value)))))
-                   (t
-                    (make-writer
-                      (format stream "~A"
-                              (funcall fn time)))))))))))
+    (cond ((null action)
+           (error "~S is not a known directive" directive))
+          ((characterp action)
+           (make-writer (write-char action stream)))
+          ((stringp action)
+           (compile-time-format action))
+          (t (let ((fn (if (consp action) (third action) action)))
+               (case flag-char
+                 (#\- (make-writer (format stream "~A"
+                                           (funcall fn time))))
+                 (#\_ (make-writer (format stream "~V,VD"
+                                           width-size #\Space
+                                           (funcall fn time))))
+                 (#\0 (make-writer (format stream "~V,VD"
+                                           width-size #\0
+                                           (funcall fn time))))
+                 (#\^ (make-writer (format stream "~:@(~A~)"
+                                           (funcall fn time))))
+                 (#\# (make-writer
+                       (let ((value (funcall fn time)))
+                         (format stream "~A"
+                                 (if (stringp value)
+                                     (toggle-case value)
+                                     value)))))
+                 (t
+                  (make-writer
+                   (format stream "~A"
+                           (funcall fn time))))))))))
 
 (defun format-time (stream format &optional (time (get-universal-time)))
   "Write TIME to STREAM as instructed by FORMAT."
