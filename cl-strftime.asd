@@ -7,4 +7,5 @@
   :serial t
   :depends-on (#:date-calc #:cl-ppcre)
   :components ((:file "package")
+               (:file "directives")
                (:file "cl-strftime")))

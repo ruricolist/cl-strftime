@@ -2,19 +2,16 @@ CL-STRFTIME is a Common Lisp compiler for the strftime language. It is
 not an interface to a foreign function, but a re-implementation from
 scratch.
 
-Two functions are exported: FORMAT-TIME and MAKE-TIME-FORMATTER.
+FORMAT-TIME takes a stream, a strftime-style control string and,
+optionally, a universal time.
 
-FORMAT-TIME takes a stream, a format, and a time. The format is
-compiled and applied to the time, writing to the stream.
-
-     (format-time t "%D" (get-universal-time))
+     (cl-strftime:format-time t "%D" (get-universal-time))
      => 02/12/12
 
-If the format argument to FORMAT-TIME is a constant, it is compiled in
-advance. Otherwise, MAKE-TIME-FORMATTER returns a function to pass as
-the format argument to FORMAT-TIME.
+The second exported function, MAKE-TIME-FORMATTER, is to FORMAT-TIME
+as FORMATTER is to FORMAT.
 
-The following flags and directives are supported:
+FORMAT-TIME understands the following flags and directives:
 
 FLAGS
 
@@ -67,4 +64,4 @@ DIRECTIVES
 
 There is no support for localization at this time.
 
-Depends on DATE-CALC, which is Quicklisp-installable.
+Depends on CL-PPCRE and DATE-CALC, which are Quicklisp-installable.
