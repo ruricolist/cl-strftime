@@ -2,8 +2,9 @@ CL-STRFTIME is a Common Lisp compiler for the strftime language. It is
 not an interface to a foreign function, but a re-implementation from
 scratch.
 
-FORMAT-TIME takes a stream, a strftime-style control string and,
-optionally, a universal time.
+FORMAT-TIME takes four arguments: a stream, a strftime-style control
+string, a universal time (defaults to now), and a time zone (defaults
+to here).
 
      (cl-strftime:format-time t "%D" (get-universal-time))
      => 02/12/12

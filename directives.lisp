@@ -53,8 +53,17 @@
                            (:constructor nil))
   seconds minutes hours day-of-month month year day-of-week daylight? timezone)
 
-(defun make-universal-time (time)
-  (multiple-value-list (decode-universal-time time)))
+(defun make-universal-time (&optional time tz)
+  (let ((time (or time (get-universal-time))))
+    (if tz
+        (make-tz time tz)
+        (multiple-value-list (decode-universal-time time)))))
+
+(defun make-tz (utime tz)
+  (multiple-value-bind (s min h dom mon y dow daylight? zone)
+      (decode-universal-time utime (if (numberp tz) tz 0))
+    (declare (ignore daylight? zone))
+    (list s min h dom mon y dow nil tz)))
 
 (defun reencode-universal-time (time)
   (encode-universal-time

@@ -1,27 +1,27 @@
 (in-package #:cl-strftime)
 
-(defun format-time (stream format &optional (time (get-universal-time)))
+(defun format-time (stream format &optional (time (get-universal-time)) tz)
   "Write TIME to STREAM as instructed by FORMAT."
   (let ((formatter
           (if (functionp format)
               format
-              (make-time-formatter format))))
+              (make-time-formatter format tz))))
     (if stream
         (funcall formatter stream :time time)
         (with-output-to-string (s)
           (funcall formatter s :time time)))))
 
-(define-compiler-macro format-time (&whole decline stream format &optional time
+(define-compiler-macro format-time (&whole decline stream format &optional time tz
                                            &environment env)
-  (if (constantp format env)
-      `(format-time ,stream (load-time-value (make-time-formatter ,format))
+  (if (and (constantp format env) (constantp tz env))
+      `(format-time ,stream (load-time-value (make-time-formatter ,format ,tz))
                     ,@(when time (list time)))
       decline))
 
-(defun make-time-formatter (string)
+(defun make-time-formatter (string tz)
   (let ((writers (nreverse (flatten! (compile-time-format string)))))
     (lambda (stream &key (time (get-universal-time)))
-      (let ((time (make-universal-time time)))
+      (let ((time (make-universal-time time tz)))
         (dolist (fn writers)
           (funcall fn stream time))))))
 
