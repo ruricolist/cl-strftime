@@ -153,4 +153,6 @@
   (let ((tz (- (timezone time))))
     (when (daylight? time)
       (incf tz))
-    (format nil "~@D" (floor (* tz 1000)))))
+    (format nil "~:[-~;+~]~4,'0D"
+            (plusp tz)
+            (abs (* tz 100)))))
