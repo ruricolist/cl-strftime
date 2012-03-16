@@ -64,7 +64,9 @@
    (day-of-month time)
    (month time)
    (year time)
-   (timezone time)))
+   (- (timezone time)
+      (if (daylight? time)
+          1 0))))
 
 (defparameter *months*
   '("January" "February" "March" "April" "May" "June" "July" "August" "September"
@@ -147,9 +149,8 @@
      y1)))
 
 (defun time-zone-offset (time)
-  (let ((tz (timezone time)))
-    (format nil
-            "~:[+~;-~]~4,'0D"
-            ;; CL gives time zones the opposite sign as RFC 2822.
-            (plusp tz)
-            (floor (* tz 100)))))
+  ;; CL gives time zones the opposite sign as RFC 2822.
+  (let ((tz (- (timezone time))))
+    (when (daylight? time)
+      (incf tz))
+    (format nil "~@D" (floor (* tz 1000)))))
