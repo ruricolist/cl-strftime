@@ -41,7 +41,50 @@
     (#\y . year-of-century)
     (#\Y . year)
     (#\z . time-zone-offset)
-    (#\Z . timezone)))
+    (#\Z . time-zone-name)))
+
+(defparameter *named-time-formats*
+  '((arpa rfc-822)
+    (asctime "%a %b %_d %H %Y")
+    (atom rfc-3339)
+    (cookie rfc-850 :gmt t)
+    (ctime asctime)
+    (email rfc-822)
+    (html w3c)
+    ;; HTTP says it uses RFC 1123, but specifies two-digit days of the
+    ;; month.
+    (http "%a, %d %b %Y %T GMT" :gmt t)
+    (news rfc-850)
+    ;; Strictly speaking there is more than one RFC 822 format, but
+    ;; this is the one most often used, and formalized by RFC 2822.
+    (rfc-822 "%a, %-d %b %Y %T %z")
+    (rfc-850 "%a, %-d-%b-%y %T %Z")
+    (rfc-1036 rfc-2822)
+    (rfc-1132 "%a, %-d %b %Y %T %z")
+    (rfc-2086 rfc-2822 :gmt t)
+    (rfc-2616 http)
+    (rfc-2822 rfc-822)
+    (rfc-3339 w3c)
+    (rss rfc-2822)
+    (unix "%s")
+    (usenet news)
+    (w3c "%FT%T%z")
+    (xml w3c)))
+
+(defun named-time-format (name &optional gmt)
+  (destructuring-bind (name format &key (gmt gmt))
+      (assoc (string name) *named-time-formats* :key #'string :test #'equal)
+    (declare (ignore name))
+    (if (symbolp format)
+        (named-time-format format gmt)
+        (values format gmt))))
+
+(defparameter *us-time-zones*
+  '((-5 "EST" "EDT")
+    (-6 "CST" "CDT")
+    (-7 "MST" "MDT")
+    (-8 "PSD" "PDT"))
+  "Time zones known to RFC 822.")
 
 (defconstant +unix-epoch+ (encode-universal-time 0 0 0 1 1 1970 0))
 
@@ -158,10 +201,33 @@
      y1)))
 
 (defun time-zone-offset (time)
-  ;; CL gives time zones the opposite sign as RFC 2822.
+  ;; CL gives time zones the opposite sign as ISO.
   (let ((tz (- (timezone time))))
     (when (daylight? time)
       (incf tz))
     (format nil "~:[-~;+~]~4,'0D"
             (plusp tz)
             (abs (* tz 100)))))
+
+(defun time-zone-offset-with-colon (time)
+  ;; CL gives time zones the opposite sign as ISO.
+  (let ((tz (- (timezone time))))
+    (when (daylight? time)
+      (incf tz))
+    (multiple-value-bind (quot rem)
+        (floor (abs tz))
+      (format nil "~:[-~;+~]~2,'0D:~2,'0D"
+              (plusp tz)
+              quot rem))))
+
+(defun time-zone-name (time &optional nato)
+  (let ((tz (timezone time)))
+    (cond ((zerop tz)
+           (if nato "Z" "GMT"))
+          ((find (- tz) *us-time-zones* :key #'car :test #'=)
+           (funcall
+            (if (daylight? time)
+                #'third
+                #'second)
+            (assoc (- tz) *us-time-zones* :test #'=)))
+          (t (princ-to-string tz)))))

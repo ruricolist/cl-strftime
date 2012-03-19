@@ -12,6 +12,12 @@ to here).
 The second exported function, MAKE-TIME-FORMATTER, is to FORMAT-TIME
 as FORMATTER is to FORMAT.
 
+As an extension, FORMAT-TIME understands a number of named formats. To
+use a named format, pass a keyword in place of the control string.
+
+     (cl-strftime:format-time t :rfc-3339 (get-universal-time))
+     => 2012-03-19T06:16:29Z
+
 FORMAT-TIME understands the following flags and directives:
 
 FLAGS
@@ -61,7 +67,19 @@ DIRECTIVES
 %y Year of century (12)
 %Y Year (2012)
 %z RFC 2822 timezone
-%Z Timezone
+%Z Name of timezone
+
+NAMED FORMATS
+
+:ARPA :EMAIL :RFC-822
+:ASCTIME :CTIME
+:COOKIE
+:HTTP :RFC-2616
+:NEWS :RFC-850 :USENET
+:RSS :RFC-2822 :RFC-1036 :RFC-2086
+:RFC-1132
+:UNIX
+:W3C :HTML :RFC-3339 :XML :ATOM
 
 There is no support for localization at this time.
 
