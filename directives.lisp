@@ -121,20 +121,20 @@
           1 0))))
 
 (defparameter *months*
-  '("January" "February" "March" "April" "May" "June" "July" "August" "September"
+  #("January" "February" "March" "April" "May" "June" "July" "August" "September"
     "October" "November" "December"))
 
 (defun month-name (time)
-  (nth (1- (month time)) *months*))
+  (svref *months* (1- (month time))))
 
 (defun short-month-name (time)
   (subseq (month-name time) 0 3))
 
 (defparameter *weekdays*
-  '("Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"))
+  #("Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"))
 
 (defun weekday-name (time)
-  (nth (day-of-week time) *weekdays*))
+  (svref *weekdays* (day-of-week time)))
 
 (defun short-weekday-name (time)
   (subseq (weekday-name time) 0 3))
