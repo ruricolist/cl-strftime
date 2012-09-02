@@ -3,11 +3,14 @@ not an interface to a foreign function, but a re-implementation from
 scratch.
 
 FORMAT-TIME takes four arguments: a stream, a strftime-style control
-string, a universal time (defaults to now), and a time zone (defaults
-to here).
+string, a time (defaults to now), and a time zone (defaults to here).
 
      (cl-strftime:format-time t "%D" (get-universal-time))
      => 02/12/12
+
+The time argument may be a universal time or a LOCAL-TIME timestamp.
+The time zone should be NIL, for here; T, for UTC; or a time zone
+object in LOCAL-TIME'S format.
 
 The second exported function, MAKE-TIME-FORMATTER, is to FORMAT-TIME
 as FORMATTER is to FORMAT.
@@ -83,4 +86,5 @@ NAMED FORMATS
 
 There is no support for localization at this time.
 
-Depends on CL-PPCRE and DATE-CALC, which are Quicklisp-installable.
+Depends on CL-PPCRE, DATE-CALC, and LOCAL-TIME, which are
+Quicklisp-installable.
