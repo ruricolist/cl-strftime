@@ -1,30 +1,35 @@
 (in-package #:cl-strftime)
 
+(defun expand-tz (tz)
+  (etypecase tz
+    ((eql t) +utc-zone+)
+    (null *default-timezone*)
+    (local-time::timezone tz)))
+
 (defun format-time (stream format &optional (time (now)) tz)
   "Write TIME to STREAM as instructed by FORMAT."
   (let ((time
           (etypecase time
             (timestamp time)
             (integer (universal-to-timestamp time))))
-        (tz
-          (etypecase tz
-            ((eql t) +utc-zone+)
-            (null *default-timezone*)
-            (local-time::timezone tz))))
+        (*default-timezone* (expand-tz tz)))
     (let ((formatter
             (if (functionp format)
                 format
-                (make-time-formatter format tz))))
+                (make-time-formatter format))))
       (if stream
           (funcall formatter stream :time time)
           (with-output-to-string (s)
             (funcall formatter s :time time))))))
 
-(define-compiler-macro format-time (&whole decline stream format &optional time (tz *default-timezone*)
+(define-compiler-macro format-time (&whole decline
+                                           stream format
+                                           &optional time tz
                                            &environment env)
-  (if (and (constantp format env) (constantp tz env))
-      `(format-time ,stream (load-time-value (make-time-formatter ,format ,tz))
-                    ,@(when time (list time)))
+  (if (constantp format env)
+      `(let ((*default-timezone* ,tz))
+         (format-time ,stream (load-time-value (make-time-formatter ,format))
+                      ,@(when time (list time))))
       decline))
 
 (defmacro writer ((stream time) &body body)
@@ -33,7 +38,7 @@
               (optimize speed) (ignorable ,stream ,time))
      ,@body))
 
-(defun make-time-formatter (format tz)
+(defun make-time-formatter (format &aux (tz *default-timezone*))
   (if (keywordp format)
       (multiple-value-bind (f gmt)
           (named-time-format format)
@@ -41,18 +46,19 @@
         (if gmt (setf tz +utc-zone+))))
   (let ((writers (nreverse (flatten! (compile-time-format format)))))
     (lambda (stream &key (time (now)))
-      (labels ((call/stream (stream)
-                 (dolist (writer writers)
-                   (declare (function writer)
-                            (optimize speed))
-                   (funcall writer stream time))))
-        (declare (inline call/stream))
-        (if (streamp stream)
-            (call/stream stream)
-            (ecase stream
-              ((t) (call/stream *standard-output*))
-              ((nil) (with-output-to-string (s)
-                       (call/stream s)))))))))
+      (let ((*default-timezone* (expand-tz tz)))
+        (labels ((call/stream (stream)
+                   (dolist (writer writers)
+                     (declare (function writer)
+                              (optimize speed))
+                     (funcall writer stream time))))
+          (declare (inline call/stream))
+          (if (streamp stream)
+              (call/stream stream)
+              (ecase stream
+                ((t) (call/stream *standard-output*))
+                ((nil) (with-output-to-string (s)
+                         (call/stream s))))))))))
 
 (defun compile-time-format (string)
   (let (writers)
