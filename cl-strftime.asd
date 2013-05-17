@@ -5,7 +5,10 @@
   :description "Common Lisp compiler for the strftime language."
   :license "MIT"
   :serial t
-  :depends-on (#:date-calc #:cl-ppcre #:local-time)
+  :depends-on (#:alexandria
+               #:date-calc
+               #:cl-ppcre
+               #:local-time)
   :components ((:file "package")
                (:file "directives")
                (:file "cl-strftime")))
