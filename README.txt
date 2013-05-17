@@ -1,6 +1,4 @@
-CL-STRFTIME is a Common Lisp compiler for the strftime language. It is
-not an interface to a foreign function, but a re-implementation from
-scratch.
+CL-STRFTIME is a Common Lisp compiler for the strftime “language.”
 
 FORMAT-TIME takes four arguments: a stream, a strftime-style control
 string, a time (defaults to now), and a time zone (defaults to here).
@@ -8,15 +6,18 @@ string, a time (defaults to now), and a time zone (defaults to here).
      (cl-strftime:format-time t "%D" (get-universal-time))
      => 02/12/12
 
+The stream argument may be NIL or T, as for FORMAT.
+
 The time argument may be a universal time or a LOCAL-TIME timestamp.
+
 The time zone should be NIL, for here; T, for UTC; or a time zone
 object in LOCAL-TIME'S format.
 
-The second exported function, MAKE-TIME-FORMATTER, is to FORMAT-TIME
-as FORMATTER is to FORMAT.
+The other exported function, MAKE-TIME-FORMATTER, is to FORMAT-TIME as
+FORMATTER is to FORMAT.
 
-As an extension, FORMAT-TIME understands a number of named formats. To
-use a named format, pass a keyword in place of the control string.
+FORMAT-TIME also understands a number of named formats. To use a named
+format, pass a keyword in place of the control string.
 
      (cl-strftime:format-time t :rfc-3339 (get-universal-time))
      => 2012-03-19T06:16:29Z
@@ -74,6 +75,8 @@ DIRECTIVES
 
 NAMED FORMATS
 
+(Formats on the same line are synonyms.)
+
 :ARPA :EMAIL :RFC-822
 :ASCTIME :CTIME
 :COOKIE
@@ -84,7 +87,5 @@ NAMED FORMATS
 :UNIX
 :W3C :HTML :RFC-3339 :XML :ATOM
 
-There is no support for localization at this time.
-
-Depends on CL-PPCRE, DATE-CALC, and LOCAL-TIME, which are
+Depends on ALEXANDRIA, CL-PPCRE, DATE-CALC, and LOCAL-TIME, which are
 Quicklisp-installable.
