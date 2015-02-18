@@ -110,18 +110,18 @@
   (aref short-weekdays (timestamp-day-of-week time)))
 
 (def month-lengths
-  #.(coerce #(31 28 31 30 31 30 31 31 30 31 30 31) '(vector fixnum)))
+  #.(coerce #(31 28 31 30 31 30 31 31 30 31 30 31) '(vector (integer 0 31))))
 
 (def month-offsets
   (let ((diffs (scan #'+ month-lengths :initial-value 0)))
-    (slice (coerce diffs '(vector fixnum)) 0 -1)))
+    (slice (coerce diffs '(vector (integer 0 366))) 0 -1)))
 
 (defun month-offset (m)
   (aref month-offsets (1- m)))
 
 (def iso-long-year-table
   #.(loop with table = (make-array '(400)
-                                   :element-type 'fixnum
+                                   :element-type 'bit
                                    :initial-element 0)
           with iso-long-year-list =
           '(004 009 015 020 026 032 037 043 048 054 060 065 071 076 082
