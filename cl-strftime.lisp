@@ -14,6 +14,9 @@
 (defun format-time (stream format &optional (time (now)) tz)
   "Write TIME to STREAM as instructed by FORMAT.
 
+TZ may be `nil' (for the current default timezone), `t' (for GMT), or
+an object of type `local-time::timezone'.
+
 FLAGS
 
 - Do not pad
