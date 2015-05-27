@@ -18,6 +18,9 @@
                (:file "cl-strftime")))
 
 (asdf:defsystem #:cl-strftime/tests
+  :description "Tests for cl-strftime."
+  :author "Paul M. Rodriguez <pmr@ruricolist.com>"
+  :license "MIT"
   :pathname "tests/"
   :perform (asdf:test-op (o c) (uiop:symbol-call :cl-strftime :run-tests))
   :serial t
