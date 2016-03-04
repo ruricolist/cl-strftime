@@ -31,13 +31,13 @@
      (:w3c "%FT%T%z")
      (:xml :w3c))))
 
-(defun named-time-format (name &optional gmt)
+(defun named-time-format (name &optional gmt?)
   (check-type name keyword)
   (multiple-value-bind (format format?)
       (gethash name named-time-formats)
     (if (not format?)
         (error 'unknown-format :name name)
-        (destructuring-bind (format &key (gmt gmt)) format
+        (destructuring-bind (format &key ((:gmt gmt?) gmt?)) format
           (if (symbolp format)
-              (named-time-format format gmt)
-              (values format gmt))))))
+              (named-time-format format gmt?)
+              (values format gmt?))))))
